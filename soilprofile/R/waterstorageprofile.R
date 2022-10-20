@@ -25,7 +25,9 @@ waterstorageprofile <- function(){
   print("Resultado usando a regra de simpson: ")
   print(result_simpson)
   matplot(eixo_x,eixo_y,type="l", xlab="water amount", ylab="depth")
-}
+  #library(simstudy)
+  #viewSplines(c(eixo_x), degree = 2, c(eixo_y))
+  }
 
 
 destroyX = function(es) {
