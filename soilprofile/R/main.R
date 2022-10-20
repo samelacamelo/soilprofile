@@ -4,11 +4,9 @@
 #'
 #' @export
 main <- function(){
-  #waterstorageprofile()
-
   choice<-menu(gettext(c("Water storage profile", "Future project 1", "Future project 2")),
-       graphics = TRUE,
-       title = "Choose the feature")
+               graphics = TRUE,
+               title = "Choose the feature")
   switch(
     choice,
     "1"= waterstorageprofile(),
