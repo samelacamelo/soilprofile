@@ -24,7 +24,7 @@ waterstorageprofile <- function(){
   result_simpson <- fda.usc::int.simpson2(eixo_x, eixo_y, equi = TRUE, method = "CSR")
   print("Resultado usando a regra de simpson: ")
   print(result_simpson)
-  #matplot(eixo_x,eixo_y,type="l", xlab="water amount", ylab="depth")
+  matplot(eixo_x,eixo_y,type="l", xlab="water amount", ylab="depth")
 }
 
 
