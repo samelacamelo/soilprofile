@@ -9,16 +9,22 @@
 
 waterstorageprofile <- function(){
   library(ggplot2)
-  #filePath <- file.choose()
-  filePath <- "C:\\Users\\rroman12\\Downloads\\unicalinha.csv"
+  filePath <- file.choose()
   df <- read.csv(file = filePath,header = TRUE)
 
   df2 <- df[, colnames(df)[c(3:ncol(df))]]
 
   df3 <- destroyX(df2)
-  #edit(df3)
-  ggplot(df3, aes(x=df3$x, y=df3$x))
-  #plot(df2$y, df2$x)
+
+  eixo_y = as.numeric(colnames(df3))
+  eixo_x <- (as.numeric(df3[1,]))
+  result_trapezio <- fda.usc::int.simpson2(eixo_x, eixo_y, equi = TRUE, method = "TRAPZ")
+  print("Resultado usando o método do trapézio: ")
+  print(result_trapezio)
+  result_simpson <- fda.usc::int.simpson2(eixo_x, eixo_y, equi = TRUE, method = "CSR")
+  print("Resultado usando a regra de simpson: ")
+  print(result_simpson)
+  #matplot(eixo_x,eixo_y,type="l", xlab="water amount", ylab="depth")
 }
 
 
