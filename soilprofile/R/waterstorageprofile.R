@@ -11,26 +11,38 @@ waterstorageprofile <- function(){
   library(ggplot2)
   filePath <- file.choose()
   df <- read.csv(file = filePath,header = TRUE)
-
   df2 <- df[, colnames(df)[c(3:ncol(df))]]
+  df3 <- remove_x_label(df2)
+  nrows <- nrow(df3)
+  my_range <- 1:nrows
+  par(mfrow=c(nrows,1))
+  result_df <- data.frame(result_trapezio=NA, result_simpson=NA,result_spline=NA)[numeric(0), ]
+  for(i in my_range) {
 
-  df3 <- destroyX(df2)
-
-  eixo_y = as.numeric(colnames(df3))
-  eixo_x <- (as.numeric(df3[1,]))
-  result_trapezio <- fda.usc::int.simpson2(eixo_x, eixo_y, equi = TRUE, method = "TRAPZ")
-  print("Resultado usando o método do trapézio: ")
-  print(result_trapezio)
-  result_simpson <- fda.usc::int.simpson2(eixo_x, eixo_y, equi = TRUE, method = "CSR")
-  print("Resultado usando a regra de simpson: ")
-  print(result_simpson)
-  matplot(eixo_x,eixo_y,type="l", xlab="water amount", ylab="depth")
-  #library(simstudy)
-  #viewSplines(c(eixo_x), degree = 2, c(eixo_y))
+    eixo_y <- as.numeric(colnames(df3))
+    eixo_x <- (as.numeric(df3[i,]))
+    result_trapezio <- fda.usc::int.simpson2(eixo_y, eixo_x, equi = TRUE, method = "TRAPZ")
+    result_simpson <- fda.usc::int.simpson2(eixo_y, eixo_x, equi = TRUE, method = "CSR")
+    library('splines')
+    f <- splinefun(eixo_y,eixo_x)
+    result_spline = integrate(f, lower = 0.1, upper = 1.1)
+    result_spline <- result_spline$value
+    windows()
+    plot(eixo_y,eixo_x, col="blue",sub=as.character(i))
+    curve(f(x), 0.1, 1.1, col = "green", lwd = 1.5,add=TRUE)
+    result_trapezio <- c(result_trapezio)
+    result_simpson <- c(result_simpson)
+    result_spline <- c(result_spline)
+    partial_df <- data.frame(result_trapezio, result_simpson,result_spline )
+    result_df<-rbind(partial_df,result_df )
   }
+  edit(result_df)
+}
 
 
-destroyX = function(es) {
+
+
+remove_x_label = function(es) {
   f = es
   for (col in c(1:ncol(f))){ #for each column in dataframe
     if (startsWith(colnames(f)[col], "X") == TRUE)  { #if starts with 'X' ..
