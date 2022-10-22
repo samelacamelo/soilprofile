@@ -56,7 +56,9 @@ waterstorageprofile <- function(){
   html_code <- gsub("###POINTS###", points_html, html_code)
   result_df_html <-print(xtable(result_df), type="html",print.results = FALSE)
   html_code <- gsub("###RESULTS###", result_df_html, html_code)
-  writeLines(text = html_code, con = paste(reports_dir,"index.html",sep="/"))
+  site_path <- paste(reports_dir,"index.html",sep="/")
+  writeLines(text = html_code, con = site_path)
+  browseURL(site_path)
 }
 
 
