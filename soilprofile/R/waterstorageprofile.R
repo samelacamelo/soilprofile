@@ -8,17 +8,23 @@
 
 
 waterstorageprofile <- function(){
+  timestamp <- format(Sys.time(), "%Y%m%d%H%M%S")
+  reports_dir <- paste("reports", timestamp, sep="/")
+  dir.create(reports_dir,recursive=TRUE)
   library(ggplot2)
   filePath <- file.choose()
+
+
   df <- read.csv(file = filePath,header = TRUE)
   df2 <- df[, colnames(df)[c(3:ncol(df))]]
   df3 <- remove_x_label(df2)
   nrows <- nrow(df3)
-  my_range <- 1:nrows
+  rows_qty <- 1:nrows
   par(mfrow=c(nrows,1))
   result_df <- data.frame(result_trapezio=NA, result_simpson=NA,result_spline=NA)[numeric(0), ]
-  for(i in my_range) {
+  pdf(file= "sample.pdf" )
 
+  for(i in rows_qty) {
     eixo_y <- as.numeric(colnames(df3))
     eixo_x <- (as.numeric(df3[i,]))
     result_trapezio <- fda.usc::int.simpson2(eixo_y, eixo_x, equi = TRUE, method = "TRAPZ")
@@ -27,7 +33,7 @@ waterstorageprofile <- function(){
     f <- splinefun(eixo_y,eixo_x)
     result_spline = integrate(f, lower = 0.1, upper = 1.1)
     result_spline <- result_spline$value
-    windows()
+    #windows()
     plot(eixo_y,eixo_x, col="blue",sub=as.character(i))
     curve(f(x), 0.1, 1.1, col = "green", lwd = 1.5,add=TRUE)
     result_trapezio <- c(result_trapezio)
