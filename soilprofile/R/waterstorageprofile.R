@@ -32,8 +32,7 @@ waterstorageprofile <- function(){
   for(i in rows_qty) {
     eixo_y <- as.numeric(colnames(df3))
     eixo_x <- (as.numeric(df3[i,]))
-    #result_trapezio <- fda.usc::int.simpson2(eixo_y, eixo_x, equi = TRUE, method = "TRAPZ")
-    result_trapezio <- trapezoidal_rule(eixo_y, eixo_x)
+    result_trapezio <- trapezoidal_rule(eixo_y,eixo_x)
     t_img_file_name <- paste(as.character(i),".png",sep="")
     t_img_file_name <- paste("t_",t_img_file_name)
     dev.copy(png,filename=paste(reports_dir,t_img_file_name,sep="/"));

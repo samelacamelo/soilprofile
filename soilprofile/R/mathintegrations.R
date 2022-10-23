@@ -4,10 +4,10 @@
 #'
 #' @export
 #'
-trapezoidal_rule <- function(original_x,original_y,i){
+trapezoidal_rule <- function(original_x,original_y){
   areas = c()
   plot(original_x,original_y)
-  for(i in c(2:length(eixo_x)-1)) {
+  for(i in c(2:length(original_x)-1)) {
     x <- c(original_x[i],original_x[i+1])
     y <- c(original_y[i],original_y[i+1])
     points_x <- append(x, x[1],1)
