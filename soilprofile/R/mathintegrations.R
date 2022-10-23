@@ -6,7 +6,6 @@
 #'
 trapezoidal_rule <- function(original_x,original_y,i){
   areas = c()
-  dev.off()
   plot(original_x,original_y)
   for(i in c(2:length(eixo_x)-1)) {
     x <- c(original_x[i],original_x[i+1])

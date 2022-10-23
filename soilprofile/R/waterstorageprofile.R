@@ -44,12 +44,13 @@ waterstorageprofile <- function(){
     result_spline = integrate(f, lower = 0.1, upper = 1.1)
     result_spline <- result_spline$value
     #windows()
-    dev.off()
+
     plot(eixo_y,eixo_x, col="blue")
     sp_img_file_name <- paste(as.character(i),".png",sep="")
     sp_img_file_name <- paste("sp_",sp_img_file_name)
     dev.copy(png,filename=paste(reports_dir,sp_img_file_name,sep="/"));
     curve(f(x), 0.1, 1.1, col = "green", lwd = 1.5,add=TRUE)
+    dev.off()
     graphics.off();
     result_trapezio <- c(result_trapezio)
     result_simpson <- c(result_simpson)
