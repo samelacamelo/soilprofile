@@ -32,16 +32,22 @@ waterstorageprofile <- function(){
   for(i in rows_qty) {
     eixo_y <- as.numeric(colnames(df3))
     eixo_x <- (as.numeric(df3[i,]))
-    result_trapezio <- fda.usc::int.simpson2(eixo_y, eixo_x, equi = TRUE, method = "TRAPZ")
+    #result_trapezio <- fda.usc::int.simpson2(eixo_y, eixo_x, equi = TRUE, method = "TRAPZ")
+    result_trapezio <- trapezoidal_rule(eixo_y, eixo_x)
+    t_img_file_name <- paste(as.character(i),".png",sep="")
+    t_img_file_name <- paste("t_",t_img_file_name)
+    dev.copy(png,filename=paste(reports_dir,t_img_file_name,sep="/"));
+    graphics.off();
     result_simpson <- fda.usc::int.simpson2(eixo_y, eixo_x, equi = TRUE, method = "CSR")
     library('splines')
     f <- splinefun(eixo_y,eixo_x)
     result_spline = integrate(f, lower = 0.1, upper = 1.1)
     result_spline <- result_spline$value
     #windows()
-    plot(eixo_y,eixo_x, col="blue",sub=as.character(i))
-    img_file_name <- paste(as.character(i),".png",sep="")
-    dev.copy(png,filename=paste(reports_dir,img_file_name,sep="/"));
+    plot(eixo_y,eixo_x, col="blue")
+    sp_img_file_name <- paste(as.character(i),".png",sep="")
+    sp_img_file_name <- paste("sp_",sp_img_file_name)
+    dev.copy(png,filename=paste(reports_dir,sp_img_file_name,sep="/"));
     curve(f(x), 0.1, 1.1, col = "green", lwd = 1.5,add=TRUE)
     graphics.off();
     result_trapezio <- c(result_trapezio)
@@ -49,7 +55,18 @@ waterstorageprofile <- function(){
     result_spline <- c(result_spline)
     partial_df <- data.frame(result_trapezio, result_simpson,result_spline )
     result_df<-rbind(partial_df,result_df )
-    point_html = str_interp('<div id="pointContainer"><h3>${i}</h3><img src="${img_file_name}"></img></div> ')
+    point_html = str_interp('<h3>${i}</h3>
+                            <div class="pointContainer">
+                              <div class="imageContainer">
+                                <h4>Trapezoid</h4>
+                                  <img src="${t_img_file_name}"</img>
+                              </div>
+                              <div class="imageContainer">
+                              <h4>Splines</h4>
+                                <img src="${sp_img_file_name}"></img>
+                              </div>
+                            </div> ')
+
     points_html <- paste(points_html,point_html,sep="\n")
   }
   #edit(result_df)
