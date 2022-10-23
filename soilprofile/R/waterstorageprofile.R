@@ -44,6 +44,7 @@ waterstorageprofile <- function(){
     result_spline = integrate(f, lower = 0.1, upper = 1.1)
     result_spline <- result_spline$value
     #windows()
+    dev.off()
     plot(eixo_y,eixo_x, col="blue")
     sp_img_file_name <- paste(as.character(i),".png",sep="")
     sp_img_file_name <- paste("sp_",sp_img_file_name)
