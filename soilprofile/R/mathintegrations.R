@@ -56,7 +56,7 @@ splines_rule <-function(original_x,original_y){
   result_value = integrate(f, lower = original_y[1], upper = original_y[length(original_y)])
   plot(original_y,original_x, col="blue", ylim=c((min(original_x)*0.99),(max(original_x)*1.01)),xlab="Soil Depth(m)",ylab="Soil Moisture (m3 m-3)")
   curve_obj <- curve(f(x), original_y[1], original_y[length(original_y)], col = "green", lwd = 1.5,add=TRUE)
-  points_x <- append(curve_obj$x, x[1],1)
+  points_x <- append(curve_obj$x, curve_obj$x[1],1)
   points_x <- append(points_x, points_x[length((points_x))])
   points_y <- append(curve_obj$y, 0,0)
   points_y <- append(points_y, 0)
