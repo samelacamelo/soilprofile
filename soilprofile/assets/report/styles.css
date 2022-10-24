@@ -2,6 +2,13 @@ body{
   font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
 }
 
+#body {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+}
+
 #mainContainer{
   display: flex;
   flex-direction: column;
@@ -37,7 +44,7 @@ h1{
   margin-right:1rem;
 }
 
-h2,h3{
+h2,h3,h4,h5{
   text-align: center;
 }
 
@@ -71,4 +78,20 @@ tr:nth-child(even) {
 
 .pointContainer{
   display:flex;
+}
+
+.warningSign{
+  background-color:#f5cece;
+}
+
+#datasetPreviewWithoutLastRow tr > td:last-of-type {
+    color:red;
+}
+
+#datasetPreviewWithoutLastRow tr > th:last-of-type {
+    color:red;
+}
+
+.graph {
+	transform: rotate(90deg);
 }

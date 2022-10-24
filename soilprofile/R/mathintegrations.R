@@ -1,12 +1,14 @@
 #' Math integrations
 #'
-#' Extension of the fda.usc R package for mathematical integrations/interpolations
+#' Multiple functions for mathematical integrations/interpolations
 #'
 #' @export
 #'
 trapezoidal_rule <- function(original_x,original_y){
+  library("stringr")
+
   areas = c()
-  plot(original_x,original_y)
+  plot(original_x,original_y, col="blue", ylim=c((min(original_y)*0.99),(max(original_y)*1.01)),xlab="Soil Depth(m)",ylab="Soil Moisture (m3 m-3)")
   for(i in c(2:length(original_x)-1)) {
     x <- c(original_x[i],original_x[i+1])
     y <- c(original_y[i],original_y[i+1])
@@ -14,7 +16,7 @@ trapezoidal_rule <- function(original_x,original_y){
     points_x <- append(points_x, points_x[3])
     points_y <- append(y, 0,0)
     points_y <- append(points_y, 0)
-    polygon(points_x,points_y,col=ifelse((i %% 2) == 0,"#009a36","#1ef25a"),border="white")
+    polygon(points_x,points_y,col=ifelse((i %% 2) == 0,"#00b43f","#009a36"),border="white")
     biggest_base <- max(y)
     smallest_base <- min(y)
     h = max(x)-min(x)
@@ -22,4 +24,43 @@ trapezoidal_rule <- function(original_x,original_y){
     areas <- append(areas,area)
   }
   sum(areas)
+
 }
+
+simpson_rule <- function(original_x,original_y){
+  plot(original_x,original_y, col="blue", ylim=c((min(original_y)*0.99),(max(original_y)*1.01)),xlab="Soil Depth(m)",ylab="Soil Moisture (m3 m-3)")
+  loop_items <- c(3:length(original_x))
+  loop_items <- loop_items[which(loop_items %% 2 == 1)]
+  areas = 0
+  for(i in loop_items) {
+    x <- c(original_x[i-2],original_x[i-1],original_x[i])
+    y <- c(original_y[i-2],original_y[i-1],original_y[i])
+    spline_points <- spline(x, y, n=100)
+    points_x <- append(spline_points$x, x[1],1)
+    points_x <- append(points_x, points_x[length((points_x))])
+    points_y <- append(spline_points$y, 0,0)
+    points_y <- append(points_y, 0)
+    polygon(points_x,points_y,col=str_interp("#0000${as.hexmode((i %% 10)+5)}${as.hexmode((i %% 10)+5)}"),border="white")
+    multiply_factor <- (original_y[i-2]+(4*original_y[i-1])+(original_y[i]))
+    delta_x <- (original_x[i]-original_x[i-2])/3
+    areas = areas+((delta_x/3)*multiply_factor)
+  }
+
+  fda.usc::int.simpson2(original_x, original_y, equi = TRUE, method = "CSR")
+  #areas
+}
+
+splines_rule <-function(original_x,original_y){
+  library('splines')
+  f <- splinefun(original_y,original_x)
+  result_value = integrate(f, lower = original_y[1], upper = original_y[length(original_y)])
+  plot(original_y,original_x, col="blue", ylim=c((min(original_x)*0.99),(max(original_x)*1.01)),xlab="Soil Depth(m)",ylab="Soil Moisture (m3 m-3)")
+  curve_obj <- curve(f(x), original_y[1], original_y[length(original_y)], col = "green", lwd = 1.5,add=TRUE)
+  points_x <- append(curve_obj$x, x[1],1)
+  points_x <- append(points_x, points_x[length((points_x))])
+  points_y <- append(curve_obj$y, 0,0)
+  points_y <- append(points_y, 0)
+  polygon(points_x,points_y, col = "red")
+  result_value$value
+}
+
