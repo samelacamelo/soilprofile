@@ -8,7 +8,12 @@ trapezoidal_rule <- function(original_x,original_y){
   library("stringr")
 
   areas = c()
-  plot(original_x,original_y, col="blue", ylim=c((min(original_y)*0.99),(max(original_y)*1.01)),xlab="Soil Depth(m)",ylab="Soil Moisture (m3 m-3)")
+  plot(original_x,original_y, col="blue", xlim = c(0, original_x[length(original_x)]),ylim=c((min(original_y)*0.99),(max(original_y)*1.01)),xlab="Soil Depth(m)",ylab="Soil Moisture (m3 m-3)",xaxs = "i",yaxs = "i")
+  axis(1,at=0)
+  #For the first row, assumes that the initial point and zero are the same
+  polygon(c(0,0,original_x[1],original_x[1]),c(0,original_y[1],original_y[1],0),col=("#FF00FF"),border="white")
+  area <- original_x[1]*original_y[1]
+  areas <- append(areas,area)
   for(i in c(2:length(original_x)-1)) {
     x <- c(original_x[i],original_x[i+1])
     y <- c(original_y[i],original_y[i+1])
@@ -28,9 +33,15 @@ trapezoidal_rule <- function(original_x,original_y){
 }
 
 simpson_rule <- function(original_x,original_y){
-  plot(original_x,original_y, col="blue", ylim=c((min(original_y)*0.99),(max(original_y)*1.01)),xlab="Soil Depth(m)",ylab="Soil Moisture (m3 m-3)")
+  plot(original_x,original_y, col="blue", xlim = c(0, original_x[length(original_x)]),ylim=c((min(original_y)*0.99),(max(original_y)*1.01)),xlab="Soil Depth(m)",ylab="Soil Moisture (m3 m-3)",xaxs = "i",yaxs = "i")
+  axis(1,at=0)
+  #For the first row, assumes that the initial point and zero are the same
+  polygon(c(0,0,original_x[1],original_x[1]),c(0,original_y[1],original_y[1],0),col=("#FF00FF"),border="white")
+  init_area <- original_x[1]*original_y[1]
+
   loop_items <- c(3:length(original_x))
   loop_items <- loop_items[which(loop_items %% 2 == 1)]
+
   areas = 0
   for(i in loop_items) {
     x <- c(original_x[i-2],original_x[i-1],original_x[i])
@@ -46,21 +57,26 @@ simpson_rule <- function(original_x,original_y){
     areas = areas+((delta_x/3)*multiply_factor)
   }
 
-  fda.usc::int.simpson2(original_x, original_y, equi = TRUE, method = "CSR")
-  #areas
+  simpson_area = fda.usc::int.simpson2(original_x, original_y, equi = TRUE, method = "CSR")
+  simpson_area + init_area
 }
 
 splines_rule <-function(original_x,original_y){
+  #add a extra element to represent x = 0
+  original_y <- append(original_y, 0,0)
+  original_x <- append(original_x, original_x[1],0)
+
   library('splines')
   f <- splinefun(original_y,original_x)
   result_value = integrate(f, lower = original_y[1], upper = original_y[length(original_y)])
-  plot(original_y,original_x, col="blue", ylim=c((min(original_x)*0.99),(max(original_x)*1.01)),xlab="Soil Depth(m)",ylab="Soil Moisture (m3 m-3)")
+  plot(original_y,original_x, col="blue", ylim=c((min(original_x)*0.99),(max(original_x)*1.01)),xlab="Soil Depth(m)",ylab="Soil Moisture (m3 m-3)",xaxs = "i",yaxs = "i")
+  axis(1,at=0)
   curve_obj <- curve(f(x), original_y[1], original_y[length(original_y)], col = "green", lwd = 1.5,add=TRUE)
   points_x <- append(curve_obj$x, curve_obj$x[1],1)
   points_x <- append(points_x, points_x[length((points_x))])
   points_y <- append(curve_obj$y, 0,0)
   points_y <- append(points_y, 0)
-  polygon(points_x,points_y, col = "red")
+  polygon(points_x,points_y, col = "red",border="white")
   result_value$value
 }
 
