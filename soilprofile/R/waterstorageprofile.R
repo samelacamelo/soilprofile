@@ -13,13 +13,14 @@
 #'
 #' @export
 # Initial setup
-library("readr")
-library("stringr")
-library("xtable")
+
 timestamp <- format(Sys.time(), "%Y%m%d%H%M%S")
 reports_dir <- paste("reports", timestamp, sep="/")
 waterstorageprofile <- function(){
-
+  library("readr")
+  library("stringr")
+  library("xtable")
+  options(digits=15)
   dir.create(reports_dir,recursive=TRUE)
   filePath <- file.choose()
 
@@ -34,19 +35,11 @@ waterstorageprofile <- function(){
   nrows <- nrow(df3)
   rows_qty <- 1:nrows
 
-  #This dataset will be appended after each loop to each row/proble point
+  #This dataset will be appended after each loop to each row/probe point
   result_df <- data.frame(result_trapezoidal=NA, result_simpson=NA,result_spline=NA)[numeric(0), ]
 
-  #In case that the number of probe points is even, the second-last point is ignored (simpson rule demands a odd quantity).
-  df3 <- df3[1:(length(df3)-1)]
-  #Puts a warning in the final report
-  warning_sign <- ""
   datasetPreviewTableId = "datasetPreview"
-  if(ncol(df3)%%2 == 0){
-    warning_sign <- "<h2 class='warningSign'>⚠  The number of probe points must be odd and bigger than 3 in order to apply the Simpson Rule. The second-last point of the dataset was ignored  ⚠</h2>"
-    datasetPreviewTableId = "datasetPreviewWithoutLastRow"
-  }
-  html_code <- gsub("###WARNING###", warning_sign, html_code)
+
 
   #Creates the Dataset Preview section from the html report
   df_html = xtable(df)
