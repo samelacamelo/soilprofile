@@ -49,16 +49,31 @@ simpson_rule <- function(original_x,original_y){
     axis(1,at=i,labels=l)
   }
 
+  total_area = 0
   if(length(original_x)%%2 == 0){
+    trapezoid_points_x <- c(
+      original_x[length(original_x)-1],
+      original_x[length(original_x)-1],
+      original_x[length(original_x)],
+      original_x[length(original_x)]
+      )
+    trapezoid_points_y <- c(
+      0,
+      original_y[length(original_y)-1],
+      original_y[length(original_y)],
+      0
+    )
+    polygon(trapezoid_points_x,trapezoid_points_y,col="#FF00FF",border="white")
+    bases <- original_y[length(original_y)-1]+original_y[length(original_y)]
+    h <- original_x[length(original_x)]-original_x[length(original_x)-1]
+    trapezoid_area <- (bases)*h/2
+    total_area <- sum(total_area,trapezoid_area)
   }
-
-  #polygon(c(0,0,original_x[1],original_x[1]),c(0,original_y[1],original_y[1],0),col=("#FF00FF"),border="white")
-  #init_area <- original_x[1]*original_y[1]
 
   loop_items <- c(3:length(original_x))
   loop_items <- loop_items[which(loop_items %% 2 == 1)]
 
-  areas = 0
+  simpson_area <- 0
   for(i in loop_items) {
     x <- c(original_x[i-2],original_x[i-1],original_x[i])
     y <- c(original_y[i-2],original_y[i-1],original_y[i])
@@ -68,13 +83,13 @@ simpson_rule <- function(original_x,original_y){
     points_y <- append(spline_points$y, 0,0)
     points_y <- append(points_y, 0)
     polygon(points_x,points_y,col=str_interp("#0000${as.hexmode((i %% 10)+5)}${as.hexmode((i %% 10)+5)}"),border="white")
-    multiply_factor <- (original_y[i-2]+(4*original_y[i-1])+(original_y[i]))
-    delta_x <- (original_x[i]-original_x[i-2])/3
-    areas = areas+((delta_x/3)*multiply_factor)
+    area <- (((original_x[i]-original_x[i-2])/2)/3)*(original_y[i-2]+(4*original_y[i-1]+original_y[i]))
+    simpson_area <- sum(simpson_area,area)
   }
 
-  simpson_area = fda.usc::int.simpson2(original_x, original_y, equi = TRUE, method = "CSR")
-  simpson_area
+  #simpson_area <- fda.usc::int.simpson2(original_x, original_y, equi = TRUE, method = "CSR")
+  total_area <- sum(total_area,simpson_area)
+  total_area
 }
 
 splines_rule <-function(original_x,original_y){
