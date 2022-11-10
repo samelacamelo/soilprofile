@@ -36,7 +36,7 @@ waterstorageprofile <- function(){
   rows_qty <- 1:nrows
 
   #This dataset will be appended after each loop to each row/probe point
-  result_df <- data.frame(result_trapezoidal=NA, result_simpson=NA,result_spline=NA)[numeric(0), ]
+  result_df <- data.frame(result_simple_average=NA,result_trapezoidal=NA, result_simpson=NA,result_spline=NA)[numeric(0), ]
 
   datasetPreviewTableId = "datasetPreview"
 
@@ -53,6 +53,10 @@ waterstorageprofile <- function(){
     y_axis <- as.numeric(colnames(df3))
     x_axis <- (as.numeric(df3[i,]))
 
+    #simple_average
+    result_simple_average <- simple_average(y_axis,x_axis)
+    save_png("sa_",i)
+
     #trapezoidal
     result_trapezoidal <- trapezoidal_rule(y_axis,x_axis)
     save_png("t_",i)
@@ -67,15 +71,19 @@ waterstorageprofile <- function(){
 
 
     #Converts to numeric and appends this single proble point result to the final dataframe
+    result_simple_average <- format(round(result_simple_average, 5), nsmall = 5)
+    result_simple_average <- c(result_simple_average)
     result_trapezoidal <- format(round(result_trapezoidal, 5), nsmall = 5)
     result_trapezoidal <- c(result_trapezoidal)
     result_simpson <- format(round(result_simpson, 5), nsmall = 5)
     result_simpson <- c(result_simpson)
     result_spline <- format(round(result_spline, 5), nsmall = 5)
     result_spline <- c(result_spline)
-    partial_df <- data.frame(result_trapezoidal, result_simpson,result_spline )
+    partial_df <- data.frame(result_simple_average,result_trapezoidal, result_simpson,result_spline )
     result_df<-rbind(result_df,partial_df)
 
+    result_simple_average_mm <- as.numeric(result_simple_average[1]) * 1000
+    result_simple_average_mm <- format(round(result_simple_average_mm, 2), nsmall = 2)
     result_trapezoidal_mm <- as.numeric(result_trapezoidal[1]) * 1000
     result_trapezoidal_mm <- format(round(result_trapezoidal_mm, 2), nsmall = 2)
     result_simpson_mm <- as.numeric(result_simpson[1]) * 1000
@@ -86,6 +94,12 @@ waterstorageprofile <- function(){
     #Mounts the html report
     point_html = str_interp('<h3>Probe point: ${i}</h3>
                                 <div class="pointContainer">
+                                    <div class="imageContainer">
+                                        <h4>Simple Average</h4>
+                                        <img class="graph" src="sa_${i}.png"></img>
+                                        <h5>Water Profile(m): ${result_simple_average}</h5>
+                                        <h5>Water Profile(mm): ${result_simple_average_mm}</h5>
+                                    </div>
                                     <div class="imageContainer">
                                         <h4>Trapezoid</h4>
                                         <img class="graph" src="t_${i}.png"></img>

@@ -4,6 +4,29 @@
 #'
 #' @export
 #'
+
+simple_average <-function(original_x,original_y){
+  #For the first row, assumes that the initial point and zero are the same
+  original_x <- append(original_x, 0,0)
+  original_y <- append(original_y, original_y[1],0)
+  average_y <- (sum(original_y)/length(original_y))
+  size_x <- original_x[length(original_x)]-original_x[1]
+  area <- average_y*size_x
+
+  #plot the figure
+  plot(original_x,original_y, col="blue", xlim = c(0, original_x[length(original_x)]),ylim=c((min(original_y)*0.99),(max(original_y)*1.01)),xlab="Soil Depth(m)",ylab="Soil Moisture (m3 m-3)",xaxs = "i",yaxs = "i")
+  for(i in seq(1,length(original_x))) {
+    l <- formatC(i, format="f", digits=1)
+    axis(1,at=i,labels=l)
+    if (i>1){
+      points_x <- c(original_x[i-1],original_x[i-1],original_x[i],original_x[i])
+      points_y <- c(0,average_y,average_y,0)
+      polygon(points_x,points_y,col=ifelse((i %% 2) == 0,"#FF8C00","#FFD700"),border="white")
+    }
+  }
+  area
+}
+
 trapezoidal_rule <- function(original_x,original_y){
   library("stringr")
 
@@ -41,6 +64,7 @@ simpson_rule <- function(original_x,original_y){
   #For the first row, assumes that the initial point and zero are the same
   original_x <- append(original_x, 0,0)
   original_y <- append(original_y, original_y[1],0)
+
   plot(original_x,original_y, col="blue", xlim = c(0, original_x[length(original_x)]),ylim=c((min(original_y)*0.99),(max(original_y)*1.01)),xlab="Soil Depth(m)",ylab="Soil Moisture (m3 m-3)",xaxs = "i",yaxs = "i")
 
   #add more ticks to the axis labels
@@ -86,8 +110,6 @@ simpson_rule <- function(original_x,original_y){
     area <- (((original_x[i]-original_x[i-2])/2)/3)*(original_y[i-2]+(4*original_y[i-1]+original_y[i]))
     simpson_area <- sum(simpson_area,area)
   }
-
-  #simpson_area <- fda.usc::int.simpson2(original_x, original_y, equi = TRUE, method = "CSR")
   total_area <- sum(total_area,simpson_area)
   total_area
 }
@@ -99,7 +121,7 @@ splines_rule <-function(original_x,original_y){
   original_x <- append(original_x, original_x[1],0)
 
   f <- splinefun(original_y,original_x)
-  result_value = integrate(f, lower = original_y[1], upper = original_y[length(original_y)])
+  result_value = integrate(f, lower = original_y[1], upper = original_y[length(original_y)],subdivisions=10)
   plot(original_y,original_x, col="blue", ylim=c((min(original_x)*0.99),(max(original_x)*1.01)),xlab="Soil Depth(m)",ylab="Soil Moisture (m3 m-3)",xaxs = "i",yaxs = "i")
   #add more ticks to the axis labels
   for(i in append(original_y, 0,0)) {
