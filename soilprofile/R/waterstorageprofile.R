@@ -36,13 +36,22 @@ waterstorageprofile <- function(){
   rows_qty <- 1:nrows
 
   #This dataset will be appended after each loop to each row/probe point
-  result_df <- data.frame(result_simple_average=NA,result_trapezoidal=NA, result_simpson=NA,result_spline=NA)[numeric(0), ]
+  result_df <- data.frame(
+    result_simple_average=NA,
+    result_trapezoidal=NA,
+    result_simpson=NA,
+    result_spline=NA,
+    result_simple_average_diff=NA,
+    result_trapezoidal_diff=NA,
+    result_simpson_diff=NA,
+    result_spline_diff=NA
+  )[numeric(0), ]
 
   datasetPreviewTableId = "datasetPreview"
 
 
   #Creates the Dataset Preview section from the html report
-  df_html = xtable(df)
+  df_html <- xtable(df)
   dataset_preview_html <-print(xtable(df_html), type="html",print.results = FALSE)
   dataset_preview_html <- gsub("<table", str_interp("<table id='${datasetPreviewTableId}'"), dataset_preview_html)
   html_code <- gsub("###DATASET PREVIEW###", dataset_preview_html, html_code)
@@ -69,6 +78,20 @@ waterstorageprofile <- function(){
     result_spline <- splines_rule(x_axis,y_axis)
     save_png("sp_",i)
 
+    #Calculate how much a method is different from the 4 methods average
+    average <- (result_simple_average+result_trapezoidal+result_simpson+result_spline)/4
+    result_simple_average_diff <- diff_calculator(average,result_simple_average)
+    result_trapezoidal_diff <- diff_calculator(average,result_trapezoidal)
+    result_simpson_diff <- diff_calculator(average,result_simpson)
+    result_spline_diff <- diff_calculator(average,result_spline)
+    best_method <- which.min(c(result_simple_average_diff,result_trapezoidal_diff,result_simpson_diff,result_spline_diff))
+    switch(
+      best_method,
+      "1" = {result_simple_average_diff <- paste("★ ",result_simple_average_diff)},
+      "2" = {result_trapezoidal_diff <- paste("★ ",result_trapezoidal_diff)},
+      "3" = {result_simpson_diff <- paste("★ ",result_simpson_diff)},
+      "4" = {result_spline_diff <- paste("★ ",result_spline_diff)}
+    )
 
     #Converts to numeric and appends this single proble point result to the final dataframe
     result_simple_average <- format(round(result_simple_average, 5), nsmall = 5)
@@ -79,9 +102,21 @@ waterstorageprofile <- function(){
     result_simpson <- c(result_simpson)
     result_spline <- format(round(result_spline, 5), nsmall = 5)
     result_spline <- c(result_spline)
-    partial_df <- data.frame(result_simple_average,result_trapezoidal, result_simpson,result_spline )
+
+    #Creates a single row of result and append it into the final dataframe
+    partial_df <- data.frame(
+      result_simple_average,
+      result_trapezoidal,
+      result_simpson,
+      result_spline,
+      c(paste(result_simple_average_diff,"%")),
+      c(paste(result_trapezoidal_diff,"%")),
+      c(paste(result_simpson_diff,"%")),
+      c(paste(result_spline_diff,"%"))
+    )
     result_df<-rbind(result_df,partial_df)
 
+    #Create the milimiters values for the report
     result_simple_average_mm <- as.numeric(result_simple_average[1]) * 1000
     result_simple_average_mm <- format(round(result_simple_average_mm, 2), nsmall = 2)
     result_trapezoidal_mm <- as.numeric(result_trapezoidal[1]) * 1000
@@ -92,7 +127,7 @@ waterstorageprofile <- function(){
     result_spline_mm <- format(round(result_spline_mm, 2), nsmall = 2)
 
     #Mounts the html report
-    point_html = str_interp('<h3>Probe point: ${i}</h3>
+    point_html <- str_interp('<h3>Probe point: ${i}</h3>
                                 <div class="pointContainer">
                                     <div class="imageContainer">
                                         <h4>Simple Average</h4>
@@ -135,8 +170,8 @@ waterstorageprofile <- function(){
 
 #Removes the X from the column name that R automatically inserts. This is important because the header is converted to numbers to create
 #the X and Y axis values
-remove_x_label = function(es) {
-  f = es
+remove_x_label <- function(es) {
+  f <- es
   for (col in c(1:ncol(f))){
     if (startsWith(colnames(f)[col], "X") == TRUE)  {
       colnames(f)[col] <- substr(colnames(f)[col], 2, 100)
@@ -146,10 +181,19 @@ remove_x_label = function(es) {
 }
 
 #Saves the current plot as a png image. The file names are later on used on the html report
-save_png = function(img_file_prefix,image_index) {
+save_png <- function(img_file_prefix,image_index) {
   img_file_name <- paste(as.character(image_index),".png",sep="")
   img_file_name <- paste(img_file_prefix,img_file_name,sep="")
   dev.copy(png,filename=paste(reports_dir,img_file_name,sep="/"));
   dev.off();
   graphics.off();
+}
+
+#Function to calculate how much a method is different from the 4 methods average
+#Also formats with 3 decimal places
+diff_calculator <- function(average,single_element){
+  result <- (single_element*100)/average
+  result <- 100-result
+  result <- format(round(result, 3), nsmall = 3,scientific=F)
+  result
 }
