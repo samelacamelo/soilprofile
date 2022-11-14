@@ -30,13 +30,15 @@ waterstorageprofile <- function(){
 
   #reads the csv, skips the first three columns
   df <- read.csv(file = filePath,header = TRUE)
-  df2 <- df[, colnames(df)[c(3:ncol(df))]]
+  df2 <- df[, colnames(df)[c(4:ncol(df))]]
+  #transforms the name of the columns in real numbers
   df3 <- remove_x_label(df2)
   nrows <- nrow(df3)
   rows_qty <- 1:nrows
 
   #This dataset will be appended after each loop to each row/probe point
   result_df <- data.frame(
+    index = NA,
     result_simple_average=NA,
     result_trapezoidal=NA,
     result_simpson=NA,
@@ -59,8 +61,21 @@ waterstorageprofile <- function(){
   #Loops for each row in the dataset (each row corresponds to a probe point)
   for(i in rows_qty) {
 
+    #The information about the soil probe
+    soil_type <- df$soil[i]
+    soil_description <- df$description[i]
+    equipment <- df$equipment[i]
+
+    #Creates the two axis for the analytical analysis
     y_axis <- as.numeric(colnames(df3))
     x_axis <- (as.numeric(df3[i,]))
+
+    #finds which elements in array are equal to "NA" and remove them
+    elems_to_remove <- which(is.na(x_axis))
+    if(length(elems_to_remove) > 0){
+      x_axis = x_axis[-elems_to_remove]
+      y_axis = y_axis[-elems_to_remove]
+    }
 
     #simple_average
     result_simple_average <- simple_average(y_axis,x_axis)
@@ -105,6 +120,7 @@ waterstorageprofile <- function(){
 
     #Creates a single row of result and append it into the final dataframe
     partial_df <- data.frame(
+      c(str_interp('#beginhref#${i}#middlehref#${i}#endhref#')), #To create the clickable links later on
       result_simple_average,
       result_trapezoidal,
       result_simpson,
@@ -127,7 +143,13 @@ waterstorageprofile <- function(){
     result_spline_mm <- format(round(result_spline_mm, 2), nsmall = 2)
 
     #Mounts the html report
-    point_html <- str_interp('<h3>Probe point: ${i}</h3>
+    point_html <- str_interp('
+                              <div class="pointHeader">
+                                <a id="${i}"><h3>Probe point: ${i}</h3></a>
+                                <p><b>Soil type:</b> ${soil_type}</p>
+                                <p><b>Soil description:</b> ${soil_description}</p>
+                                <p><b>Equipment used:</b> ${equipment}</p>
+                              </div>
                                 <div class="pointContainer">
                                     <div class="imageContainer">
                                         <h4>Simple Average</h4>
@@ -158,10 +180,26 @@ waterstorageprofile <- function(){
     points_html <- paste(points_html,point_html,sep="\n")
   }
 
+  #Renames the columns of the final dataframe
+  colnames(result_df) <- c(
+    '#',
+    'Simple Average',
+    'Trapezoidal',
+    'Simpson',
+    'Splines',
+    '%diff Simple Average',
+    '%diff Trapezoidal',
+    '%diff Simpson',
+    '%diff Splines'
+    )
+
   #Finishes the html report
   html_code <- gsub("###POINTS###", points_html, html_code)
-  result_df_html <-print(xtable(result_df), type="html",print.results = FALSE)
+  result_df_html <-print(xtable(result_df), type="html",include.rownames=FALSE,print.results = FALSE)
   html_code <- gsub("###RESULTS###", result_df_html, html_code)
+  html_code <- gsub("#beginhref#", "<a href='#", html_code)
+  html_code <- gsub("#middlehref#", "'>", html_code)
+  html_code <- gsub("#endhref#", "</a>", html_code)
   site_path <- paste(reports_dir,"index.html",sep="/")
   writeLines(text = html_code, con = site_path)
   #Force opening the report

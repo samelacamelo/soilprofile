@@ -60,16 +60,22 @@ h2,h3,h4,h5{
 }
 
 table {
-  width: 100%;
- 
+  width: 100%; 
   font-family: arial, sans-serif;
   border-collapse: collapse;
+position: relative;
 }
 
 td, th {
   border: 1px solid #dddddd;
   text-align: left;
   padding: 8px;
+}
+
+th{
+position: sticky;
+top: 0; 
+background: white;
 }
 
 tr:nth-child(even) {
@@ -94,4 +100,8 @@ tr:nth-child(even) {
 
 .graph {
 	transform: rotate(90deg);
+}
+
+p{
+	font-size:1.2rem;
 }
