@@ -20,6 +20,7 @@ waterstorageprofile <- function(){
   library("readr")
   library("stringr")
   library("xtable")
+  library("dplyr")
   options(digits=15)
   dir.create(reports_dir,recursive=TRUE)
   filePath <- file.choose()
@@ -51,12 +52,23 @@ waterstorageprofile <- function(){
 
   datasetPreviewTableId = "datasetPreview"
 
-
+  #Formats the measures with 5 decimal points and converts to string to help on the html conversion
+  df[4:ncol(df)] <- lapply(df[4:ncol(df)], decimal_formatter)
+  #Renames the index column to #
+  df$row_number <- seq.int(nrow(df))
+  df <- df %>% select(row_number, everything())
+  colnames(df)[1] <- "#"
   #Creates the Dataset Preview section from the html report
   df_html <- xtable(df)
-  dataset_preview_html <-print(xtable(df_html), type="html",print.results = FALSE)
+  dataset_preview_html <-print(xtable(df_html), include.rownames=FALSE,type="html",print.results = FALSE)
   dataset_preview_html <- gsub("<table", str_interp("<table id='${datasetPreviewTableId}'"), dataset_preview_html)
   html_code <- gsub("###DATASET PREVIEW###", dataset_preview_html, html_code)
+
+  #Initialize the method winners count
+  simple_average_winners_count <-0
+  trapezoidal_winners_count <-0
+  simpson_winners_count <-0
+  spline_winners_count <-0
 
   #Loops for each row in the dataset (each row corresponds to a probe point)
   for(i in rows_qty) {
@@ -99,13 +111,34 @@ waterstorageprofile <- function(){
     result_trapezoidal_diff <- diff_calculator(average,result_trapezoidal)
     result_simpson_diff <- diff_calculator(average,result_simpson)
     result_spline_diff <- diff_calculator(average,result_spline)
-    best_method <- which.min(c(result_simple_average_diff,result_trapezoidal_diff,result_simpson_diff,result_spline_diff))
+    #vector with the module of results
+    diff_results = c(
+      abs(as.numeric(result_simple_average_diff[1])),
+      abs(as.numeric(result_trapezoidal_diff[1])),
+      abs(as.numeric(result_simpson_diff[1])),
+      abs(as.numeric(result_spline_diff[1]))
+    )
+
+    best_method <- which.min(diff_results)
+
     switch(
       best_method,
-      "1" = {result_simple_average_diff <- paste("★ ",result_simple_average_diff)},
-      "2" = {result_trapezoidal_diff <- paste("★ ",result_trapezoidal_diff)},
-      "3" = {result_simpson_diff <- paste("★ ",result_simpson_diff)},
-      "4" = {result_spline_diff <- paste("★ ",result_spline_diff)}
+      "1" = {
+        result_simple_average_diff[2] <- paste("★ ",result_simple_average_diff[2])
+        simple_average_winners_count <- simple_average_winners_count +1
+        },
+      "2" = {
+        result_trapezoidal_diff[2] <- paste("★ ",result_trapezoidal_diff[2])
+        trapezoidal_winners_count <- trapezoidal_winners_count +1
+        },
+      "3" = {
+        result_simpson_diff[2] <- paste("★ ",result_simpson_diff[2])
+        simpson_winners_count <- simpson_winners_count +1
+        },
+      "4" = {
+        result_spline_diff[2] <- paste("★ ",result_spline_diff[2])
+        spline_winners_count <- spline_winners_count +1
+        }
     )
 
     #Converts to numeric and appends this single proble point result to the final dataframe
@@ -125,10 +158,10 @@ waterstorageprofile <- function(){
       result_trapezoidal,
       result_simpson,
       result_spline,
-      c(paste(result_simple_average_diff,"%")),
-      c(paste(result_trapezoidal_diff,"%")),
-      c(paste(result_simpson_diff,"%")),
-      c(paste(result_spline_diff,"%"))
+      c(paste(result_simple_average_diff[2],"%")),
+      c(paste(result_trapezoidal_diff[2],"%")),
+      c(paste(result_simpson_diff[2],"%")),
+      c(paste(result_spline_diff[2],"%"))
     )
     result_df<-rbind(result_df,partial_df)
 
@@ -144,8 +177,8 @@ waterstorageprofile <- function(){
 
     #Mounts the html report
     point_html <- str_interp('
+                              <a id="${i}"><h3>Probe point: ${i}</h3></a>
                               <div class="pointHeader">
-                                <a id="${i}"><h3>Probe point: ${i}</h3></a>
                                 <p><b>Soil type:</b> ${soil_type}</p>
                                 <p><b>Soil description:</b> ${soil_description}</p>
                                 <p><b>Equipment used:</b> ${equipment}</p>
@@ -193,6 +226,43 @@ waterstorageprofile <- function(){
     '%diff Splines'
     )
 
+  #Winners count section
+  winners_count_html = str_interp("
+  <h2>Winner method count</h2>
+      <table id='winners_table'>
+        <tr>
+          <th>
+            Simple average
+          </th>
+          <th>
+            Trapezoid
+          </th>
+          <th>
+            Simson
+          </th>
+          <th>
+            Spline
+          </th>
+        </th>
+        <tr>
+          <td>
+            ${simple_average_winners_count}
+          </td>
+          <td>
+            ${trapezoidal_winners_count}
+          </td>
+          <td>
+            ${simpson_winners_count}
+          </td>
+          <td>
+            ${spline_winners_count}
+          </td>
+        </tr>
+      </table>
+  ")
+
+  html_code <- gsub("###WINNERS_COUNT###", winners_count_html, html_code)
+
   #Finishes the html report
   html_code <- gsub("###POINTS###", points_html, html_code)
   result_df_html <-print(xtable(result_df), type="html",include.rownames=FALSE,print.results = FALSE)
@@ -232,6 +302,12 @@ save_png <- function(img_file_prefix,image_index) {
 diff_calculator <- function(average,single_element){
   result <- (single_element*100)/average
   result <- 100-result
-  result <- format(round(result, 3), nsmall = 3,scientific=F)
-  result
+  result_formatted <- format(round(result, 3), nsmall = 3,scientific=F)
+  output<-list(result,result_formatted)
+  return(output)
+}
+
+# Function to format the numbers as strings with 5 decimal digits
+decimal_formatter <- function(x){
+  format(round(x, 5), nsmall = 5,scientific=F)
 }
