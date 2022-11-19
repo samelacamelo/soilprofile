@@ -43,11 +43,7 @@ waterstorageprofile <- function(){
     result_simple_average=NA,
     result_trapezoidal=NA,
     result_simpson=NA,
-    result_spline=NA,
-    result_simple_average_diff=NA,
-    result_trapezoidal_diff=NA,
-    result_simpson_diff=NA,
-    result_spline_diff=NA
+    result_spline=NA
   )[numeric(0), ]
 
   datasetPreviewTableId = "datasetPreview"
@@ -105,42 +101,6 @@ waterstorageprofile <- function(){
     result_spline <- splines_rule(x_axis,y_axis)
     save_png("sp_",i)
 
-    #Calculate how much a method is different from the 4 methods average
-    average <- (result_simple_average+result_trapezoidal+result_simpson+result_spline)/4
-    result_simple_average_diff <- diff_calculator(average,result_simple_average)
-    result_trapezoidal_diff <- diff_calculator(average,result_trapezoidal)
-    result_simpson_diff <- diff_calculator(average,result_simpson)
-    result_spline_diff <- diff_calculator(average,result_spline)
-    #vector with the module of results
-    diff_results = c(
-      abs(as.numeric(result_simple_average_diff[1])),
-      abs(as.numeric(result_trapezoidal_diff[1])),
-      abs(as.numeric(result_simpson_diff[1])),
-      abs(as.numeric(result_spline_diff[1]))
-    )
-
-    best_method <- which.min(diff_results)
-
-    switch(
-      best_method,
-      "1" = {
-        result_simple_average_diff[2] <- paste("★ ",result_simple_average_diff[2])
-        simple_average_winners_count <- simple_average_winners_count +1
-        },
-      "2" = {
-        result_trapezoidal_diff[2] <- paste("★ ",result_trapezoidal_diff[2])
-        trapezoidal_winners_count <- trapezoidal_winners_count +1
-        },
-      "3" = {
-        result_simpson_diff[2] <- paste("★ ",result_simpson_diff[2])
-        simpson_winners_count <- simpson_winners_count +1
-        },
-      "4" = {
-        result_spline_diff[2] <- paste("★ ",result_spline_diff[2])
-        spline_winners_count <- spline_winners_count +1
-        }
-    )
-
     #Converts to numeric and appends this single proble point result to the final dataframe
     result_simple_average <- format(round(result_simple_average, 5), nsmall = 5)
     result_simple_average <- c(result_simple_average)
@@ -157,15 +117,11 @@ waterstorageprofile <- function(){
       result_simple_average,
       result_trapezoidal,
       result_simpson,
-      result_spline,
-      c(paste(result_simple_average_diff[2],"%")),
-      c(paste(result_trapezoidal_diff[2],"%")),
-      c(paste(result_simpson_diff[2],"%")),
-      c(paste(result_spline_diff[2],"%"))
+      result_spline
     )
     result_df<-rbind(result_df,partial_df)
 
-    #Create the milimiters values for the report
+    #Create the millimeter values for the report
     result_simple_average_mm <- as.numeric(result_simple_average[1]) * 1000
     result_simple_average_mm <- format(round(result_simple_average_mm, 2), nsmall = 2)
     result_trapezoidal_mm <- as.numeric(result_trapezoidal[1]) * 1000
@@ -219,49 +175,16 @@ waterstorageprofile <- function(){
     'Simple Average',
     'Trapezoidal',
     'Simpson',
-    'Splines',
-    '%diff Simple Average',
-    '%diff Trapezoidal',
-    '%diff Simpson',
-    '%diff Splines'
+    'Splines'
     )
 
-  #Winners count section
-  winners_count_html = str_interp("
-  <h2>Winner method count</h2>
-      <table id='winners_table'>
-        <tr>
-          <th>
-            Simple average
-          </th>
-          <th>
-            Trapezoid
-          </th>
-          <th>
-            Simson
-          </th>
-          <th>
-            Spline
-          </th>
-        </th>
-        <tr>
-          <td>
-            ${simple_average_winners_count}
-          </td>
-          <td>
-            ${trapezoidal_winners_count}
-          </td>
-          <td>
-            ${simpson_winners_count}
-          </td>
-          <td>
-            ${spline_winners_count}
-          </td>
-        </tr>
-      </table>
+  #Methods analysis html report
+  methods_analysis_html = str_interp("
+  <h2>Methods analysis</h2>
+
   ")
 
-  html_code <- gsub("###WINNERS_COUNT###", winners_count_html, html_code)
+  html_code <- gsub("###METHODS_ANALYSIS###", methods_analysis_html, html_code)
 
   #Finishes the html report
   html_code <- gsub("###POINTS###", points_html, html_code)
