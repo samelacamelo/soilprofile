@@ -29,9 +29,9 @@ waterstorageprofile <- function(){
   html_code <- read_file("assets\\report\\report_template.html")
   points_html <- ""
 
-  #reads the csv, skips the first three columns
+  #reads the csv, skips the first five columns
   df <- read.csv(file = filePath,header = TRUE)
-  df2 <- df[, colnames(df)[c(4:ncol(df))]]
+  df2 <- df[, colnames(df)[c(6:ncol(df))]]
   #transforms the name of the columns in real numbers
   df3 <- remove_x_label(df2)
   nrows <- nrow(df3)
@@ -40,6 +40,8 @@ waterstorageprofile <- function(){
   #This dataset will be appended after each loop to each row/probe point
   result_df <- data.frame(
     index = NA,
+    soil_description = NA,
+    soil_moisture_condition = NA,
     result_simple_average=NA,
     result_trapezoidal=NA,
     result_simpson=NA,
@@ -49,7 +51,7 @@ waterstorageprofile <- function(){
   datasetPreviewTableId = "datasetPreview"
 
   #Formats the measures with 5 decimal points and converts to string to help on the html conversion
-  df[4:ncol(df)] <- lapply(df[4:ncol(df)], decimal_formatter)
+  df[6:ncol(df)] <- lapply(df[6:ncol(df)], decimal_formatter)
   #Renames the index column to #
   df$row_number <- seq.int(nrow(df))
   df <- df %>% select(row_number, everything())
@@ -73,6 +75,8 @@ waterstorageprofile <- function(){
     soil_type <- df$soil[i]
     soil_description <- df$description[i]
     equipment <- df$equipment[i]
+    soil_moisture_condition <- df$soil_moisture_condition[i]
+    textural_class <- df$textural_class[i]
 
     #Creates the two axis for the analytical analysis
     y_axis <- as.numeric(colnames(df3))
@@ -114,6 +118,8 @@ waterstorageprofile <- function(){
     #Creates a single row of result and append it into the final dataframe
     partial_df <- data.frame(
       c(str_interp('#beginhref#${i}#middlehref#${i}#endhref#')), #To create the clickable links later on
+      soil_description,
+      soil_moisture_condition,
       result_simple_average,
       result_trapezoidal,
       result_simpson,
@@ -138,6 +144,8 @@ waterstorageprofile <- function(){
                                 <p><b>Soil type:</b> ${soil_type}</p>
                                 <p><b>Soil description:</b> ${soil_description}</p>
                                 <p><b>Equipment used:</b> ${equipment}</p>
+                                <p><b>Soil moisture condition:</b> ${soil_moisture_condition}</p>
+                                <p><b>Textural class:</b> ${textural_class}</p>
                               </div>
                                 <div class="pointContainer">
                                     <div class="imageContainer">
@@ -172,23 +180,30 @@ waterstorageprofile <- function(){
   #Renames the columns of the final dataframe
   colnames(result_df) <- c(
     '#',
-    'Simple Average',
+    'Soil description',
+    'Soil Moisture condition',
+    'Simple average',
     'Trapezoidal',
     'Simpson',
     'Splines'
     )
 
-  #Methods analysis html report
-  methods_analysis_html = str_interp("
-  <h2>Methods analysis</h2>
-
-  ")
-
-  html_code <- gsub("###METHODS_ANALYSIS###", methods_analysis_html, html_code)
-
   #Finishes the html report
   html_code <- gsub("###POINTS###", points_html, html_code)
   result_df_html <-print(xtable(result_df), type="html",include.rownames=FALSE,print.results = FALSE)
+  table_widths = '
+    <table border=1>
+    <colgroup>
+      <col span="1" style="width: 1%;">
+      <col span="1" style="width: 34%;">
+      <col span="1" style="width: 25%;">
+      <col span="1" style="width: 10%;">
+      <col span="1" style="width: 10%;">
+      <col span="1" style="width: 10%;">
+      <col span="1" style="width: 10%;">
+    </colgroup>
+  '
+  result_df_html <- gsub("<table border=1>", table_widths, result_df_html)
   html_code <- gsub("###RESULTS###", result_df_html, html_code)
   html_code <- gsub("#beginhref#", "<a href='#", html_code)
   html_code <- gsub("#middlehref#", "'>", html_code)
