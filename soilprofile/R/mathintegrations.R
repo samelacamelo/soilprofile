@@ -65,7 +65,11 @@ simpson_rule <- function(original_x,original_y){
   original_x <- append(original_x, 0,0)
   original_y <- append(original_y, original_y[1],0)
 
-  plot(original_x,original_y, col="blue", xlim = c(0, original_x[length(original_x)]),ylim=c((min(original_y)*0.99),(max(original_y)*1.01)),xlab="Soil Depth(m)",ylab="Soil Moisture (m3 m-3)",xaxs = "i",yaxs = "i")
+  plot(
+    original_x,original_y,
+    col="blue", xlim = c(0, original_x[length(original_x)]),
+    ylim=c((min(original_y)*0.99),(max(original_y)*1.01)),
+    xlab="Soil Depth(m)",ylab="Soil Moisture (m3 m-3)",xaxs = "i",yaxs = "i")
 
   #add more ticks to the axis labels
   for(i in append(original_x, 0,0)) {
@@ -106,7 +110,8 @@ simpson_rule <- function(original_x,original_y){
     points_x <- append(points_x, points_x[length((points_x))])
     points_y <- append(spline_points$y, 0,0)
     points_y <- append(points_y, 0)
-    polygon(points_x,points_y,col=str_interp("#0000${as.hexmode((i %% 10)+5)}${as.hexmode((i %% 10)+5)}"),border="white")
+    polygon(points_x,points_y,col=str_interp("#0000${as.hexmode((i %% 10)+5)}${as.hexmode((i %% 10)+5)}"),
+            border="white")
     area <- (((original_x[i]-original_x[i-2])/2)/3)*(original_y[i-2]+(4*original_y[i-1]+original_y[i]))
     simpson_area <- sum(simpson_area,area)
   }
@@ -121,14 +126,22 @@ splines_rule <-function(original_x,original_y){
   original_x <- append(original_x, original_x[1],0)
 
   f <- splinefun(original_y,original_x)
-  result_value = integrate(f, lower = original_y[1], upper = original_y[length(original_y)],subdivisions=10)
-  plot(original_y,original_x, col="blue", ylim=c((min(original_x)*0.99),(max(original_x)*1.01)),xlab="Soil Depth(m)",ylab="Soil Moisture (m3 m-3)",xaxs = "i",yaxs = "i")
+  result_value = integrate(f,
+                           lower = original_y[1],
+                           upper = original_y[length(original_y)],
+                           subdivisions=10)
+  plot(original_y,
+       original_x,
+       col="blue",
+       ylim=c((min(original_x)*0.99),(max(original_x)*1.01)),
+       xlab="Soil Depth(m)",ylab="Soil Moisture (m3 m-3)",xaxs = "i",yaxs = "i")
   #add more ticks to the axis labels
   for(i in append(original_y, 0,0)) {
     l <- formatC(i, format="f", digits=1)
     axis(1,at=i,labels=l)
   }
-  curve_obj <- curve(f(x), original_y[1], original_y[length(original_y)], col = "green", lwd = 1.5,add=TRUE)
+  curve_obj <- curve(f(x), original_y[1], original_y[length(original_y)],
+                     col = "green", lwd = 1.5,add=TRUE)
   points_x <- append(curve_obj$x, curve_obj$x[1],1)
   points_x <- append(points_x, points_x[length((points_x))])
   points_y <- append(curve_obj$y, 0,0)
