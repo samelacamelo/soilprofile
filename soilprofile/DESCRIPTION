@@ -1,12 +1,11 @@
 Package: soilprofile
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Title: Measure the water content profile of soil
+Version: 1.0
+Author: Sâmela Camelo Brito / IF Baiano
+Maintainer: Sâmela Camelo Brito <samelacbrito08@gmail.com>
+Description: Measure the water content profile of soil using 4 different mathematical methods.
+License: MIT
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.1
